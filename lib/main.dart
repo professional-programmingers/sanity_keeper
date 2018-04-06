@@ -7,7 +7,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Sanity Keeper',
       theme: new ThemeData(
         // This is the theme of your application.
         //
@@ -17,9 +17,9 @@ class MyApp extends StatelessWidget {
         // "hot reload" (press "r" in the console where you ran "flutter run",
         // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
         // counter didn't reset back to zero; the application is not restarted.
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.orange,
       ),
-      home: new MyHomePage(title: 'Flutter Demo Home Page'),
+      home: new MyHomePage(title: 'Sanity Keeper'),
     );
   }
 }
@@ -69,6 +69,31 @@ class _MyHomePageState extends State<MyHomePage> {
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
         title: new Text(widget.title),
+      ),
+      drawer: new Drawer(
+        child: new ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            new DrawerHeader(
+              child: new Text('Sanity Keeper'),
+              decoration: new BoxDecoration(
+                color: Colors.orange,
+              ),
+            ),
+            new ListTile(
+              title: new Text('To-Do'),
+              onTap: () {
+
+              },
+            ),
+            new ListTile(
+              title: new Text('Scratchbook'),
+              onTap: () {
+
+              },
+            ),
+          ],
+        ),
       ),
       body: new Center(
         // Center is a layout widget. It takes a single child and positions it
