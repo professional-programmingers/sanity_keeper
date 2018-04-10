@@ -76,32 +76,47 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
-      body: new Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          new TextField(
-            onSubmitted: (String newNote) {
-              setState(() {
-                _notes.add(newNote);
-              });
-            }
-          ),
-          new ListView(
-            shrinkWrap: true,
-            padding: new EdgeInsets.all(8.0),
-            children: _notes.map((String str) {
-              return new Card(
-                child: new Container(
-                  child: new Text(
-                    str,
-                    style: new TextStyle(fontSize: 18.0),
+      body: new Center(
+        child: new Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            new ListView(
+              shrinkWrap: true,
+              padding: new EdgeInsets.all(8.0),
+              children: _notes.map((String str) {
+                return new Card(
+                  child: new Container(
+                    child: new Text(
+                      str,
+                      style: new TextStyle(fontSize: 18.0),
+                    ),
+                    padding: new EdgeInsets.all(8.0),
                   ),
+                );
+              }).toList(),
+            ),
+            new Positioned(
+              bottom: 8.0,
+              left: 8.0,
+              right: 8.0,
+              child: new Card(
+                child: new Container(
                   padding: new EdgeInsets.all(8.0),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
+                  child: new TextField(
+                    decoration: new InputDecoration(
+                      isDense: true,
+                    ),
+                    onSubmitted: (String newNote) {
+                      setState(() {
+                        _notes.add(newNote);
+                      });
+                    },
+                  ),
+                )
+              )
+            ),
+          ],
+        ),
       ),
     );
   }
