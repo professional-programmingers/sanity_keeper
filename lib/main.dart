@@ -80,44 +80,78 @@ class _MyHomePageState extends State<MyHomePage> {
         child: new Stack(
           fit: StackFit.expand,
           children: <Widget>[
-            new ListView(
+            new ListView.builder(
               shrinkWrap: true,
-              padding: new EdgeInsets.all(8.0),
-              children: _notes.map((String str) {
-                return new Card(
-                  child: new Container(
-                    child: new Text(
-                      str,
-                      style: new TextStyle(fontSize: 18.0),
-                    ),
-                    padding: new EdgeInsets.all(8.0),
-                  ),
+              itemCount: _notes.length,
+              itemBuilder: (BuildContext context, int index) {
+                final String noteText = _notes[index];
+                return new NoteItem(
+                  text: noteText
                 );
-              }).toList(),
+              },
             ),
             new Positioned(
               bottom: 8.0,
               left: 8.0,
               right: 8.0,
-              child: new Card(
-                child: new Container(
-                  padding: new EdgeInsets.all(8.0),
-                  child: new TextField(
-                    decoration: new InputDecoration(
-                      isDense: true,
-                    ),
-                    onSubmitted: (String newNote) {
-                      setState(() {
-                        _notes.add(newNote);
-                      });
-                    },
-                  ),
-                )
-              )
+              child: new NoteEntryBox(
+                onSubmit: (String newNote) {
+                  setState(() {
+                    _notes.add(newNote);
+                  });
+                },
+              ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class NoteItem extends StatelessWidget {
+  NoteItem({this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Card(
+      child: new Container(
+        child: new Text(
+          text,
+          style: new TextStyle(fontSize: 18.0),
+        ),
+        padding: new EdgeInsets.all(8.0),
+      ),
+    );
+
+  }
+}
+
+class NoteEntryBox extends StatelessWidget {
+  NoteEntryBox({this.onSubmit});
+
+  final TextEditingController controller = new TextEditingController();
+
+  final ValueChanged<String> onSubmit;
+
+  @override
+  Widget build(BuildContext context) {
+    return new Card(
+        child: new Container(
+          padding: new EdgeInsets.all(8.0),
+          child: new TextField(
+            controller: controller,
+            decoration: new InputDecoration(
+              isDense: true,
+            ),
+            onSubmitted: (String newNote) {
+              controller.clear();
+              onSubmit(newNote);
+            },
+          ),
+        )
     );
   }
 }
