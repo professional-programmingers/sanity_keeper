@@ -1,40 +1,29 @@
+import 'dart:io';
+import 'dart:convert';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 void main() => runApp(new MyApp());
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return new MaterialApp(
       title: 'Sanity Keeper',
       theme: new ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or press Run > Flutter Hot Reload in IntelliJ). Notice that the
-        // counter didn't reset back to zero; the application is not restarted.
         primarySwatch: Colors.orange,
       ),
-      home: new MyHomePage(title: 'Sanity Keeper'),
+      home: new MyHomePage(title: 'Sanity Keeper', storage: new ListStorage()),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key key, this.title, this.storage}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  final ListStorage storage;
 
   final String title;
 
@@ -44,6 +33,23 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   List<String> _notes = new List<String>();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.storage.readList().then((List<String> notes) {
+      setState(() {
+        _notes = notes;
+      });
+    });
+  }
+
+  Future<File> _addNote(String newNote) {
+    setState(() {
+      _notes.add(newNote);
+    });
+    return widget.storage.writeList(_notes);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,11 +101,7 @@ class _MyHomePageState extends State<MyHomePage> {
               left: 8.0,
               right: 8.0,
               child: new NoteEntryBox(
-                onSubmit: (String newNote) {
-                  setState(() {
-                    _notes.add(newNote);
-                  });
-                },
+                onSubmit: _addNote,
               ),
             ),
           ],
@@ -153,5 +155,49 @@ class NoteEntryBox extends StatelessWidget {
           ),
         )
     );
+  }
+}
+
+class ListStorage {
+  ListStorage() {
+    this.json = new JsonCodec();
+  }
+
+  JsonCodec json;
+
+  Future<String> get _localPath async {
+    final directory = await getApplicationDocumentsDirectory();
+
+    return directory.path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return new File('$path/list.txt');
+  }
+
+  Future<List<String>> readList() async {
+    try {
+      final file = await _localFile;
+
+      // Read the file
+      String contents = await file.readAsString();
+      List<dynamic> decoded = json.decode(contents);
+      List<String> notes = new List<String>();
+      for (dynamic d in decoded) {
+        notes.add(d as String);
+      }
+      return notes;
+    } catch (e) {
+      print("Couldn't find file, returning empty list");
+      return new List<String>();
+    }
+  }
+
+  Future<File> writeList(List<String> list) async {
+    final file = await _localFile;
+    
+    // Write the file
+    return file.writeAsString(json.encode(list));
   }
 }
