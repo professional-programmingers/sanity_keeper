@@ -1,9 +1,9 @@
 import 'dart:io';
-import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+
+import 'storage.dart';
 
 void main() => runApp(new MyApp());
 
@@ -51,55 +51,42 @@ class _MyHomePageState extends State<MyHomePage> {
     return widget.storage.writeList(_notes);
   }
 
+  Future<File> _removeNote(int index) {
+    print("asdf");
+    setState(() {
+      _notes.removeAt(index);
+    });
+    return widget.storage.writeList(_notes);
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
-      drawer: new Drawer(
-        child: new ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            new DrawerHeader(
-              child: new Text('Sanity Keeper'),
-              decoration: new BoxDecoration(
-                color: Colors.orange,
-              ),
-            ),
-            new ListTile(
-              title: new Text('To-Do'),
-              onTap: () {
-
-              },
-            ),
-            new ListTile(
-              title: new Text('Scratchbook'),
-              onTap: () {
-
-              },
-            ),
-          ],
-        ),
-      ),
       body: new Center(
         child: new Stack(
           fit: StackFit.expand,
           children: <Widget>[
             new ListView.builder(
+              padding: EdgeInsets.only(top: 6.0, left: 6.0, right: 6.0, bottom: 62.0),
               shrinkWrap: true,
               itemCount: _notes.length,
               itemBuilder: (BuildContext context, int index) {
-                final String noteText = _notes[index];
+                final int arrIndex = _notes.length - index - 1;
+                final String noteText = _notes[arrIndex];
                 return new NoteItem(
-                  text: noteText
+                  text: noteText,
+                  index: arrIndex,
+                  onDismiss: _removeNote,
                 );
               },
             ),
             new Positioned(
-              bottom: 8.0,
-              left: 8.0,
-              right: 8.0,
+              bottom: 6.0,
+              left: 6.0,
+              right: 6.0,
               child: new NoteEntryBox(
                 onSubmit: _addNote,
               ),
@@ -112,19 +99,31 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class NoteItem extends StatelessWidget {
-  NoteItem({this.text});
+  NoteItem({this.text, this.index, this.onDismiss});
 
   final String text;
+  final int index;
+
+  final ValueChanged<int> onDismiss;
 
   @override
   Widget build(BuildContext context) {
-    return new Card(
-      child: new Container(
-        child: new Text(
-          text,
-          style: new TextStyle(fontSize: 18.0),
+    return new Container(
+      padding: EdgeInsets.only(bottom: 2.0),
+      child: new Dismissible(
+        key: new Key(text),
+        onDismissed: (DismissDirection direction) {
+          onDismiss(index);
+        },
+        child: new Card(
+          child: new Container(
+            child: new Text(
+              text,
+              style: new TextStyle(fontSize: 18.0),
+            ),
+            padding: new EdgeInsets.all(8.0),
+          ),
         ),
-        padding: new EdgeInsets.all(8.0),
       ),
     );
 
@@ -141,63 +140,23 @@ class NoteEntryBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return new Card(
-        child: new Container(
-          padding: new EdgeInsets.all(8.0),
-          child: new TextField(
-            controller: controller,
-            decoration: new InputDecoration(
-              isDense: true,
-            ),
-            onSubmitted: (String newNote) {
-              controller.clear();
-              onSubmit(newNote);
-            },
+      elevation: 4.0,
+      child: new Container(
+        padding: new EdgeInsets.all(6.0),
+        child: new TextField(
+          //maxLines: null,
+          controller: controller,
+          decoration: new InputDecoration(
+            isDense: true,
+            hintText: "New note...",
           ),
-        )
+          onSubmitted: (String newNote) {
+            controller.clear();
+            onSubmit(newNote);
+          },
+        ),
+      )
     );
   }
 }
 
-class ListStorage {
-  ListStorage() {
-    this.json = new JsonCodec();
-  }
-
-  JsonCodec json;
-
-  Future<String> get _localPath async {
-    final directory = await getApplicationDocumentsDirectory();
-
-    return directory.path;
-  }
-
-  Future<File> get _localFile async {
-    final path = await _localPath;
-    return new File('$path/list.txt');
-  }
-
-  Future<List<String>> readList() async {
-    try {
-      final file = await _localFile;
-
-      // Read the file
-      String contents = await file.readAsString();
-      List<dynamic> decoded = json.decode(contents);
-      List<String> notes = new List<String>();
-      for (dynamic d in decoded) {
-        notes.add(d as String);
-      }
-      return notes;
-    } catch (e) {
-      print("Couldn't find file, returning empty list");
-      return new List<String>();
-    }
-  }
-
-  Future<File> writeList(List<String> list) async {
-    final file = await _localFile;
-    
-    // Write the file
-    return file.writeAsString(json.encode(list));
-  }
-}
